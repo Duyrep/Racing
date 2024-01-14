@@ -8,12 +8,14 @@ class Car:
     self.position = position
     self.color = color
     self.size = size
+    self.x = position[0]
+    self.y = position[1]
     self.image = pg.transform.scale(pg.image.load(f"Assets/Images/{color}Strip.png"), size)
     self.braking = False
     self.speed = 0
-    self.max_speed = 10
-    self.min_speed = -5
-    self.degree = 0
+    self.max_speed = 6
+    self.min_speed = -4
+    self.degree = 90
     self.acceleration = 0.1
     self.deceleration = 0.1
     self.swivel_speed = 0.5
@@ -32,9 +34,9 @@ class Car:
 
   def event(self, keys):
     self.braking = False
-    if keys[pg.K_w]:
+    if keys[pg.K_w] and not self.braking:
       self.move_straight()
-    elif keys[pg.K_s]:
+    elif keys[pg.K_s] and not self.braking:
       self.move_backwards()
     if keys[pg.K_a] and self.speed != 0:
       self.degree += self.speed * self.swivel_speed
@@ -48,19 +50,25 @@ class Car:
       self.braking = True
       
   def update(self, keys):
-    if keys[pg.K_w]:
+    if keys[pg.K_w] and not self.braking:
       pass
-    elif keys[pg.K_s]:
+    elif keys[pg.K_s] and not self.braking:
       pass
     elif self.speed > 0:
       self.speed -= self.deceleration
+      if self.braking:
+        self.speed -= self.deceleration * 2
       if self.speed < 0:
         self.speed = 0
     elif self.speed < 0:
       self.speed += self.deceleration
+      if self.braking:
+        self.speed += self.deceleration * 2
       if self.speed > 0:
         self.speed = 0
-    self.image = pg.transform.scale(pg.transform.scale(pg.image.load(f"Assets/Images/{self.color}Strip.png"), self.size), self.size)
+    self.image = pg.transform.scale(pg.image.load(f"Assets/Images/{self.color}Strip.png"), self.size)
     dx = math.cos(math.radians(self.degree)) * self.speed / 10
     dy = math.sin(math.radians(self.degree)) * self.speed / 10
     self.position = (self.position[0] + dx, self.position[1] - dy)
+    self.x = self.position[0]
+    self.y = self.position[1]
