@@ -10,7 +10,7 @@ class Car:
     self.size = size
     self.x = position[0]
     self.y = position[1]
-    self.image = pg.transform.scale(pg.image.load(f"Assets/Images/{color}Strip.png"), size)
+    self.image_path = f"Assets/Images/{color}Strip.png"
     self.braking = False
     self.speed = 0
     self.max_speed = 6
@@ -66,7 +66,6 @@ class Car:
         self.speed += self.deceleration * 2
       if self.speed > 0:
         self.speed = 0
-    self.image = pg.transform.scale(pg.image.load(f"Assets/Images/{self.color}Strip.png"), self.size)
     dx = math.cos(math.radians(self.degree)) * self.speed / 10
     dy = math.sin(math.radians(self.degree)) * self.speed / 10
     self.position = (self.position[0] + dx, self.position[1] - dy)

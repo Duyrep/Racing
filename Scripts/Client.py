@@ -1,4 +1,5 @@
-import socket, pickle, time, threading
+import socket, pickle, time
+import Scripts.Car
 
 
 class Client:
@@ -6,10 +7,11 @@ class Client:
   def __init__(self):
     self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     self.latency = 0.0
-    self.data = None
+    self.data: list[Scripts.Car.Car] = []
     self.send_data = None
     self.running = True
     self.connection_status = False
+    self.client.settimeout(2)
   
   def connect(self, __address):
     try:
@@ -18,16 +20,24 @@ class Client:
     except:
       self.connection_status = False
   
+  def close(self):
+    self.running = False
+    self.client.close()
+  
   def handle_data(self):
-    while self.running and self.connection_status:
-      try:
-        start_time = time.time()
-        self.client.send(pickle.dumps(self.data))
-        self.send_data = pickle.loads(self.client.recv(1024))
-        end_time = time.time()
-        self.latency = (end_time - start_time) * 1000
-      except Exception as e:
-        print(e)
-        self.client.close()
-        self.connection_status = False
-        self.running = False
+    while self.running:
+      if self.connection_status:
+        try:
+          start_time = time.time()
+          data = pickle.dumps(self.send_data)
+          self.client.send(data)
+          self.data = pickle.loads(self.client.recv(1024))
+          end_time = time.time()
+          self.latency = (end_time - start_time) * 1000
+        except socket.timeout:
+          pass
+        except Exception as e:
+          print(e)
+          self.client.close()
+          self.connection_status = False
+          self.running = False

@@ -39,7 +39,10 @@ class Game:
         "Back": pg.Rect(150, 450, 400, 100)
       }
     }
-    self.cars = []
+    self.cars: list[Car] = [self.main_car]
+    self.server.data = self.cars
+    self.server.send_data = self.cars
+    self.client.send_data = self.cars
     pg.time.set_timer(self.UPDATE_TIME, 1000)
 
   def check_event(self):
@@ -103,14 +106,10 @@ class Game:
       self.display.blit(pg.transform.scale(pg.image.load("Assets/Images/Map.png"), self.display.get_size()), (0, 0))
       for car in self.cars:
         self.display.blit(
-          self.rot_center(pg.transform.scale(car.image, car.size), car.degree),
+          self.rot_center(pg.transform.scale(pg.image.load(car.image_path), car.size), car.degree),
           (car.position[0] * car.size[0] / 10, car.position[1] * car.size[1] / 10)
         )
         pg.draw.circle(self.display, "blue", (car.x * car.size[0] / 10 + car.size[1] / 2, car.y * car.size[0] / 10 + car.size[0] / 2), 5)
-      self.display.blit(
-        self.rot_center(pg.transform.scale(self.main_car.image, self.main_car.size), self.main_car.degree),
-        (self.main_car.position[0] * self.main_car.size[0] / 10, self.main_car.position[1] * self.main_car.size[1] / 10)
-      )
 
   def draw_button(self, button):
     font = pg.font.SysFont(None, 70)
@@ -130,11 +129,12 @@ class Game:
       self.main_car.event(pg.key.get_pressed())
       for car in self.cars:
         car.size = [self.size] * 2
-    elif self.page == "MultiplayerServer":
-      self.client.send_data = self.cars
+    if self.mode == "MultiplayerServer":
+      self.server.send_data = self.cars
+      self.cars = self.server.data
+    elif self.mode == "MultiplayerClient":
+      self.client.send_data = self.main_car
       self.cars = self.client.data
-    elif self.page == "MultiplayerClient":
-      self.client.send_data = [self.main_car]
     pg.display.update()
   
   def slow_updates(self):
@@ -142,7 +142,7 @@ class Game:
       self.set_caption(
         {
           "Fps": f"{self.clock.get_fps():.1f}",
-          "Clients": [client[1] for client in self.server.clients]
+          "Clients": len(self.server.clients)
         } if self.DEBUG else {}
       )
     elif self.mode == "MultiplayerClient":
@@ -150,7 +150,8 @@ class Game:
         {
           "Fps": f"{self.clock.get_fps():.1f}",
           "Ping": f"{self.client.latency:.1f}",
-          "Connection status": self.client.connection_status
+          "Connection status": self.client.connection_status,
+          "Mode": self.mode
         } if self.DEBUG else {}
       )
   
@@ -174,4 +175,6 @@ class Game:
       self.draw()
       self.update()
     pg.quit()
+    self.server.close()
+    self.client.close()
     os._exit(1)
