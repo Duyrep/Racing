@@ -42,7 +42,7 @@ class Game:
     self.cars: list[Car] = [self.main_car]
     self.server.data = self.cars
     self.server.send_data = self.cars
-    self.client.send_data = self.cars
+    self.client.send_data = self.main_car
     pg.time.set_timer(self.UPDATE_TIME, 1000)
 
   def check_event(self):
@@ -149,9 +149,7 @@ class Game:
       self.set_caption(
         {
           "Fps": f"{self.clock.get_fps():.1f}",
-          "Ping": f"{self.client.latency:.1f}",
-          "Connection status": self.client.connection_status,
-          "Mode": self.mode
+          "Ping": f"{self.client.latency:.1f}"
         } if self.DEBUG else {}
       )
   
